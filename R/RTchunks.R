@@ -23,17 +23,16 @@ RTchunks = function(lines) {
   }
 
   x = transf(x)
-  if (nrow(x) > 0) {
-    x$open=T
-    y = transf(y)
-    y$open=F
-    tokens = rbind(x,y)
-    #                print(tokens)
+  if (nrow(x) > 0) x$open=T
+  y = transf(y)
+  if (nrow(y) > 0) y$open=F
+  tokens = rbind(x,y)
+  if (nrow(tokens) > 0) {
     i = order(tokens$line,tokens$start)
     tokens = tokens[i,]
 
     check = cumsum(tokens$open*2-1)
-    if (any(check > 1 | check < 0) ) stop ("Non matching <? and ?> found\n")
+    if (any(check > 1 | check < 0) | tail(check,1) != 0 ) stop ("Non matching <? and ?> found\n")
 
     chunks = data.frame(
       start.line = c(1,tokens$line), start.char = c(1,tokens$end),
@@ -42,5 +41,7 @@ RTchunks = function(lines) {
     start.line = 1, start.char = 1,
     end.line = length(lines), end.char = nchar(lines[length(lines)]), tag="")
   }
-  chunks
+  sel = (chunks$start.line == chunks$end.line) & (chunks$start.char - chunks$end.char == 1)
+  chunks[!sel,]
+
 }
