@@ -22,6 +22,11 @@ RT.standards = c(
   "}"
 )
 
+#' Interpret a RT file
+#'
+#' Takes a RT file and generates R source.
+#'
+#' @export
 RT = function(infile, add=NULL, shell=FALSE)
 {
   if (is.character(infile)) {
@@ -165,7 +170,7 @@ RTscript = function() {
     {	re = "[.]R[tT][^.]*$";
       if (!grepl(re, opt$file))
       {
-        cat("Warning: file not enfing with .Rt* while killing - generating .dead file\n")
+        cat("Warning: file not ending with .Rt* while killing - generating .dead file\n")
         opt$out = paste(opt$file,"dead",sep=".");
       } else {
         opt$out = sub(re,"",opt$file);
@@ -175,6 +180,7 @@ RTscript = function() {
       cat("Warning: output file name provided while killing\n");
     }
   }
+
 
   if (!is.null(opt$out) && !(opt$quiet))
     cat("Parsing RT:",opt$file, "->", opt$out,"\n");
