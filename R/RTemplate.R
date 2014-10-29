@@ -22,124 +22,6 @@ RT.standards = c(
   "}"
 )
 
-#' Interpret a RT file
-#'
-#' Takes a RT file and generates R source.
-#'
-#' @export
-RT = function(infile, add=NULL, shell=FALSE)
-{
-  if (is.character(infile)) {
-    f = file(infile,"r")
-  } else {
-    f = infile
-  }
-  l = readLines(f)
-  if (is.character(infile)) close(f)
-
-  if (shell) {
-    if (substr(l[1],1,2) == "#!") {
-      l = l[-1]
-    }
-  }
-
-  x = gregexpr("<[?][^[:blank:]]*", l)
-  y = gregexpr("[?]>", l)
-
-  transf = function(x) {
-    r = data.frame(line=c(),start=c(),end=c())
-    for (i in 1:length(x))
-    {  p = x[[i]]
-       if (p[1] != -1)
-       {
-         tags = substring(l[i],p+2,p+attr(p,"match.length")-1)
-         r = rbind(r,
-                   data.frame(line=i,start=p, end=p+attr(p,"match.length"),tag=tags)
-         )
-       }
-    }
-    r
-  }
-
-  x = transf(x)
-  if (nrow(x) > 0) {
-    x$open=T
-    y = transf(y)
-    y$open=F
-    tokens = rbind(x,y)
-    #                print(tokens)
-    i = order(tokens$line,tokens$start)
-    tokens = tokens[i,]
-
-    check = cumsum(tokens$open*2-1)
-    if (any(check > 1 | check < 0) ) stop ("Non matching <? and ?> found\n")
-
-    chunks = data.frame(
-      start.line = c(1,tokens$line), start.char = c(1,tokens$end),
-      end.line = c(tokens$line,length(l)), end.char = c(tokens$start-1,nchar(l[length(l)])), tag=c("",as.character(tokens$tag)) )
-  } else {chunks = data.frame(
-    start.line = 1, start.char = 1,
-    end.line = length(l), end.char = nchar(l[length(l)]), tag="")
-  }
-  #	print(chunks)
-
-
-  #print(chunks)
-
-
-  output = c(
-    "# RTemplate genereted code.",
-    "############# RT standard functions ########",
-    "",
-    RT.standards,
-    "",
-    "############# Parameters and settings ######",
-    "",
-    add,
-    "",
-    "############# Code from Rt file ############",
-    ""
-  )
-  for (i in 1:nrow(chunks))
-  {
-    n=chunks[i,]
-    lu = l[n$start.line:n$end.line]
-    if (n$start.line == n$end.line) {
-      lu = substr(lu,n$start.char,n$end.char)
-    } else {
-      lu[1] = substr(lu[1],n$start.char,nchar(lu[1]))
-      lu[length(lu)] = substr(lu[length(lu)],1,n$end.char)
-    }
-    tag = as.character(n$tag)
-    outadd = NULL
-    if (tag == "") {
-      if (n$start.line != n$end.line)
-        lu[2:length(lu) - 1] = paste(lu[2:length(lu) - 1],"\n",sep="")
-      outadd = paste("cat( ", encodeString(lu,quote="\"")," );",sep="")
-    } else if (tag == "R") {
-      outadd = lu;
-    } else if (substr(tag,1,1) == "%") {
-      if (length(lu) > 1) stop("'%' tag allowed only for one-line expressions");
-      outadd = paste("cat(sprintf(",encodeString(tag,quote="\""),",  ", lu, "  ));",sep="");
-    } else { cat("Unknown tag",tag,"\n");
-             if (n$start.line != n$end.line)
-               lu[2:length(lu) - 1] = paste(lu[2:length(lu) - 1],"\n",sep="")
-             outadd = c(
-               paste("cat( ", encodeString(paste("<?",tag,sep=""),quote="\"")," );",sep="") ,
-               paste("cat( ", encodeString(lu,quote="\"")," );",sep=""),
-               paste("cat( ", encodeString("?>",quote="\"")," );",sep="")
-             )
-
-    }
-    output = c(output,outadd)
-  }
-  outadd = "cat(\"\\n\")"
-  output = c(output,outadd)
-  output
-}
-
-
-
 RTscript = function() {
 
   options <- list(
@@ -231,7 +113,7 @@ RTscript = function() {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  code = RT(opt$file, add=addcode, shell=opt$shell)
+  code = RTfile(opt$file, add=addcode, shell=opt$shell)
 
   if (opt$code) {
     if (is.null(opt$out)) {
