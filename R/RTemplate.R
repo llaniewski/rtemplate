@@ -1,20 +1,24 @@
 
 RT.standards = c(
-  "printf = function(...) {cat(sprintf(...))}",
-  "quiet.source = function(..., comment=\"# \"){",
-  "f=textConnection(\"quiet.source.text\",\"w\");",
-  "sink(f); ret=source(...); sink(); close(f);",
-  "cat(paste(comment,quiet.source.text,\"\n\",sep=\"\"),sep=\"\")",
-  "ret }",
+  "printf = function(...) {",
+  "  cat(sprintf(...))",
+  "}",
+  "quiet.source = function(..., comment=\"# \") {",
+  "  f=textConnection(\"quiet.source.text\",\"w\");",
+  "  sink(f); ret=source(...); sink();",
+  "  close(f);",
+  "  cat(paste(comment,quiet.source.text,\"\n\",sep=\"\"),sep=\"\")",
+  "  ret",
+  "}",
   "if (!exists(\"include.dir\")) include.dir=NULL;",
   "source = function(file,...) {",
-  "pot = c(file, paste(include.dir,file,sep=\"/\"))",
-  "sel = sapply(pot,file.exists)",
-  "sel = which(sel)",
-  "if (length(sel) < 1) stop(\"file not found:\",file,\" in include
-  directories:\",paste(include.dir,collapse=\",\"))",
-  "newfile=pot[sel[1]]",
-  "base::source(file=newfile,...)",
+  "  pot = c(file, paste(include.dir,file,sep=\"/\"))",
+  "  sel = sapply(pot,file.exists)",
+  "  sel = which(sel)",
+  "  if (length(sel) < 1)",
+  "    stop(\"file not found:\",file,\" in include directories:\",paste(include.dir,collapse=\",\"))",
+  "  newfile=pot[sel[1]]",
+  "  base::source(file=newfile,...)",
   "}"
 )
 
