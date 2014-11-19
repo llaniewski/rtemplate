@@ -135,7 +135,7 @@ RTscript = function() {
   } else {
     code.p = parse(text=code)
     if (! is.null(opt$out)) sink(opt$out);
-    eval(code.p)
+    eval(code.p, globalenv())
     if (! is.null(opt$out)) sink()
 
   }
