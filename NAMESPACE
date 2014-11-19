@@ -3,3 +3,5 @@
 export(RTchunks)
 export(RTconvert)
 export(RTfile)
+export(RTscript)
+import(optparse)

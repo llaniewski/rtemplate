@@ -19,9 +19,20 @@ RT.standards = c(
   "    stop(\"file not found:\",file,\" in include directories:\",paste(include.dir,collapse=\",\"))",
   "  newfile=pot[sel[1]]",
   "  base::source(file=newfile,...)",
-  "}"
+  "}",
+  "linemark=function(...) {invisible(NULL)}"
 )
 
+#' Main sript for usage of RTemplate as a command-line tool
+#'
+#' You just call it, and it takes arguments from command-line and does stuff.
+#' an example shell script would look like this
+#'
+#' "#!/bin/bash"
+#' "R -e "rtemplate:RTscript()" --args $@@"
+#'
+#' @export
+#' @import optparse
 RTscript = function() {
 
   options <- list(
