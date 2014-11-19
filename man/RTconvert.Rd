@@ -3,7 +3,7 @@
 \alias{RTconvert}
 \title{Interpret a RT source in vector of strings and generates R code}
 \usage{
-RTconvert(lines, add = c(), mark.lines = FALSE)
+RTconvert(lines, add = c(), mark.lines = FALSE, filename = "")
 }
 \description{
 Interpret a RT source in vector of strings and generates R code

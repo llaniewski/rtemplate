@@ -3,7 +3,7 @@ Title: Allows for in-line R templates for text files
 Version: 0.1
 Authors@R: "Lukasz Laniewski-Wollk <llaniewski@meil.pw.edu.pl> [aut, cre]"
 Description: Allows for in-line R templates for text files
-Depends: R (>= 3.0.2)
+Depends: R (>= 3.0.2), optparse (>= 1.2.0)
 License: GPL
 LazyData: true
 Suggests: testthat
