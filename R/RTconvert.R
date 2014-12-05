@@ -24,6 +24,8 @@ RTfile = function(infile, ..., shell=FALSE, filename="")
 
 RT.linemark = function(i,filename="") {
   if (filename != "") {
+    paste0("linemark(",i,",\"",filename,"\")")
+  } else {
     paste0("linemark(",i,")")
   }
 }
@@ -74,12 +76,17 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
         lu[2:length(lu) - 1] = paste(lu[2:length(lu) - 1],"\n",sep="")
       outadd = paste("cat( ", encodeString(lu,quote="\"")," );",sep="")
       if (n$start.line != n$end.line)
-        if (mark.lines) outadd = c(outadd[1], RT.linemark(n$start.line+1),outadd[-1])
+        if (mark.lines) {
+          outadd = rep(outadd,each=2)
+          outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
+
+#          outadd = c(outadd[1], RT.linemark(n$start.line+1,filename),outadd[-1])
+        }
     } else if (tag == "R") {
       outadd = lu;
       if (n$start.line != n$end.line) if (mark.lines) {
         outadd = rep(outadd,each=2)
-        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line)
+        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
       }
     } else if (substr(tag,1,1) == "%") {
       if (length(lu) > 1) stop("'%' tag allowed only for one-line expressions");
@@ -98,5 +105,6 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
   }
   outadd = "cat(\"\\n\")"
   output = c(output,outadd)
+  if (mark.lines) output = c(output,RT.linemark(-1,filename))
   output
 }

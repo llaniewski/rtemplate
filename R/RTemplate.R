@@ -47,7 +47,9 @@ RTscript = function() {
     make_option(c("-I","--includedir"), "store", default="", help="Include directory", type="character"),
     make_option(c("-w","--workdir"), "store", default="", help="Set working directory", type="character"),
     make_option(c("-q","--quiet"), "store_true", default=FALSE,help="Quiet (print only errors)"),
-    make_option(c("-t","--csv"), "store", default="", help="Read csv. use: \"-t example.csv:3\" the 3 record of example.csv", type="character")
+    make_option(c("-t","--csv"), "store", default="", help="Read csv. use: \"-t example.csv:3\" the 3 record of example.csv", type="character"),
+    make_option(c("-b","--code-fallback"), "store_true", default=FALSE, help="Fallback to code on error"),
+    make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)")
   )
 
   opt <- parse_args(OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options), positional_arguments=TRUE)
@@ -124,7 +126,7 @@ RTscript = function() {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  code = RTfile(opt$file, add=addcode, shell=opt$shell)
+  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines")
 
   if (opt$code) {
     if (is.null(opt$out)) {
@@ -133,7 +135,20 @@ RTscript = function() {
       writeLines(code, con=opt$out);
     }
   } else {
-    code.p = parse(text=code)
+    code.p = try(parse(text=code))
+    if (class(code.p) %in% "try-error") {
+      if (opt$"code-fallback") {
+        if (!is.null(opt$out)) {
+          fn = paste0(opt$out,".parse-failed.R")
+          writeLines(code, con=fn)
+          stop("Failed to parse: writen code to ", fn)
+        } else {
+          stop("Failed to parse: no output file provided to dump code")
+        }
+      } else {
+        stop("Failed to parse R code")
+      }
+    }
     if (! is.null(opt$out)) sink(opt$out);
     eval(code.p, globalenv())
     if (! is.null(opt$out)) sink()
