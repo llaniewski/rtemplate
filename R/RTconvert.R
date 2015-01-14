@@ -94,6 +94,7 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
         output = c(output,python.standards)
         loaded.rpython = TRUE
       }
+      if (substr(lu[1],1,1) == " ") lu[1] = substr(lu[1],2,nchar(lu[1]))
 
       outadd = c(
         "python.export.all();",
