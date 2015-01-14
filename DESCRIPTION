@@ -6,4 +6,4 @@ Description: Allows for in-line R templates for text files
 Depends: R (>= 3.0.2), optparse (>= 1.2.0)
 License: GPL
 LazyData: true
-Suggests: testthat
+Suggests: testthat, rjson, rPython
