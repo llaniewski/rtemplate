@@ -23,6 +23,25 @@ RT.standards = c(
   "linemark=function(...) {invisible(NULL)}"
 )
 
+python.standards = c(
+  "require(rjson,quietly=TRUE)",
+  "require(rPython,quietly=TRUE)",
+  "python.export.all = function() {",
+    "python.myassign = function (var.name, value)",
+  "{",
+  "value <- try(rjson::toJSON(value),silent=TRUE)",
+  "if (\"try-error\" %in% class(value)) return(invisible(NULL))",
+  "var.name = gsub(\"[.]\",\"_\",var.name)",
+  "python.command <- c(paste(var.name, \"='\", value, \"'\", sep = \" \"), ",
+  "paste(var.name, \"= json.loads(\", var.name, \")\", sep = \"\"))",
+  "python.command <- paste(python.command, collapse = \"\\n\")",
+  "python.exec(python.command)",
+  "invisible(NULL)",
+  "}",
+  "for (i__ in ls(parent.frame())) python.myassign(i__,get(i__));",
+  "}")
+
+
 #' Main sript for usage of RTemplate as a command-line tool
 #'
 #' You just call it, and it takes arguments from command-line and does stuff.

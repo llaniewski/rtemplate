@@ -58,6 +58,7 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
     "############# Code from Rt file ############",
     ""
   )
+  loaded.rpython = FALSE
   if (mark.lines) output = c(output, RT.linemark(1,filename))
   for (i in 1:nrow(chunks))
   {
@@ -88,6 +89,23 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
         outadd = rep(outadd,each=2)
         outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
       }
+    } else if (tag == "python") {
+      if (! loaded.rpython) {
+        output = c(output,python.standards)
+        loaded.rpython = TRUE
+      }
+
+      outadd = c(
+        "python.export.all();",
+        "python.exec(c(",
+        "\"from cStringIO import StringIO\",",
+        "\"import sys\",",
+        "\"old_stdout = sys.stdout\",",
+        "\"sys.stdout = mystdout = StringIO()\",",
+        paste0(encodeString(lu,quote="\""),","),
+        "\"sys.stdout = old_stdout\"))",
+        "cat(python.method.call(\"mystdout\",\"getvalue\"))",
+        "invisible(python.method.call(\"mystdout\",\"close\"))")
     } else if (substr(tag,1,1) == "%") {
       if (length(lu) > 1) stop("'%' tag allowed only for one-line expressions");
       outadd = paste("cat(sprintf(",encodeString(tag,quote="\""),",  ", lu, "  ));",sep="");
