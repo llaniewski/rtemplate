@@ -24,8 +24,9 @@ RT.standards = c(
 )
 
 python.standards = c(
-  "require(rjson,quietly=TRUE)",
-  "require(rPython,quietly=TRUE)",
+  "require(rjson,quietly=TRUE,warn.conflicts=FALSE)",
+  "require(RJSONIO,quietly=TRUE,warn.conflicts=FALSE)",
+  "require(rPython,quietly=TRUE,warn.conflicts=FALSE)",
   "python.export.all = function() {",
     "python.myassign = function (var.name, value)",
   "{",
