@@ -69,7 +69,8 @@ RTscript = function() {
     make_option(c("-q","--quiet"), "store_true", default=FALSE,help="Quiet (print only errors)"),
     make_option(c("-t","--csv"), "store", default="", help="Read csv. use: \"-t example.csv:3\" the 3 record of example.csv", type="character"),
     make_option(c("-b","--code-fallback"), "store_true", default=FALSE, help="Fallback to code on error"),
-    make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)")
+    make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)"),
+    make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling")
   )
 
   opt <- parse_args(OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options), positional_arguments=TRUE)
@@ -96,7 +97,16 @@ RTscript = function() {
     }
   }
 
-
+  if (opt$profile) {
+    if (is.null(opt$out)) {
+      opt$profile.file = opt$file
+    } else {
+      opt$profile.file = opt$out
+    }
+  }
+  if (opt$profile) {
+    Rprof(paste0(opt$profile.file,".RT.Rprof"))
+  }
   if (!is.null(opt$out) && !(opt$quiet))
     cat("Parsing RT:",opt$file, "->", opt$out,"\n");
 
@@ -148,6 +158,10 @@ RTscript = function() {
 
   code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines")
 
+  if (opt$profile) {
+    Rprof(NULL)
+  }
+
   if (opt$code) {
     if (is.null(opt$out)) {
       writeLines(code);
@@ -155,6 +169,9 @@ RTscript = function() {
       writeLines(code, con=opt$out);
     }
   } else {
+    if (opt$profile) {
+      Rprof(paste0(opt$profile.file,".parse.Rprof"))
+    }
     code.p = try(parse(text=code))
     if (class(code.p) %in% "try-error") {
       if (opt$"code-fallback") {
@@ -169,10 +186,16 @@ RTscript = function() {
         stop("Failed to parse R code")
       }
     }
+    if (opt$profile) {
+      Rprof(NULL)
+      Rprof(paste0(opt$profile.file,".run.Rprof"))
+    }
     if (! is.null(opt$out)) sink(opt$out);
     eval(code.p, globalenv())
     if (! is.null(opt$out)) sink()
-
+    if (opt$profile) {
+      Rprof(NULL)
+    }
   }
 
   if (opt$destroy)
