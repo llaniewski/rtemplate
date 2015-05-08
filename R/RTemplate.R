@@ -22,7 +22,7 @@ RT.standards = c(
   "}",
   "add.include.dir = function(dir) {",
   "  if (substr(dir,1,1) != \"/\") dir = paste(getwd(),dir,sep=\"/\");",
-  "  include.dir = c(include.dir,dir)",
+  "  include.dir <<- c(include.dir,dir)",
   "}",
   "linemark=function(...) {invisible(NULL)}"
 )
