@@ -20,6 +20,10 @@ RT.standards = c(
   "  newfile=pot[sel[1]]",
   "  base::source(file=newfile,...)",
   "}",
+  "add.include.dir = function(dir) {",
+  "  if (substr(dir,1,1) != \"/\") dir = paste(getwd(),dir,sep=\"/\");",
+  "  include.dir = c(include.dir,dir)",
+  "}",
   "linemark=function(...) {invisible(NULL)}"
 )
 
@@ -141,8 +145,7 @@ RTscript = function() {
 
   if (opt$includedir != "") {
     opt$includedir = strsplit(opt$includedir,",")[[1]]
-    addcode = c(addcode, paste("include.dir =
-                             c(include.dir,paste(getwd(),\"",opt$includedir,"\",sep=\"/\"))",sep=""))
+    addcode = c(addcode, paste("add.include.dir(\"",opt$includedir,"\")",sep=""))
   }
 
 
