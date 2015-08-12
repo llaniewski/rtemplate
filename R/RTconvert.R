@@ -22,11 +22,11 @@ RTfile = function(infile, ..., shell=FALSE, filename="")
   RTconvert(lines, filename=filename, ...);
 }
 
-RT.linemark = function(i,filename="") {
+RT.linemark = function(i,filename="",reset=FALSE) {
   if (filename != "") {
-    paste0("linemark(",i,",\"",filename,"\")")
+    paste0("linemark(",i,",\"",filename,"\",reset=",reset,")")
   } else {
-    paste0("linemark(",i,")")
+    paste0("linemark(",i,",reset=",reset,")")
   }
 }
 
@@ -86,8 +86,9 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
     } else if (tag == "R") {
       outadd = lu;
       if (n$start.line != n$end.line) if (mark.lines) {
-        outadd = rep(outadd,each=2)
-        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
+        outadd = c(RT.linemark(n$start.line, filename, reset=TRUE), outadd)
+#        outadd = rep(outadd,each=2)
+#        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
       }
     } else if (tag == "python") {
       if (! loaded.rpython) {
