@@ -111,8 +111,13 @@ RTscript = function() {
   if (opt$profile) {
     Rprof(paste0(opt$profile.file,".RT.Rprof"))
   }
+  if (!is.null(opt$out)) {
+    opt$relative = relativePath(opt$file, opt$out)
+  } else {
+    opt$relative = opt$file
+  }
   if (!is.null(opt$out) && !(opt$quiet))
-    cat("Parsing RT:",opt$file, "->", opt$out,"\n");
+    cat("Parsing RT:",opt$file, "->", opt$out," (rel:",opt$relative,")\n");
 
   addcode = NULL
   e = new.env()
@@ -159,7 +164,7 @@ RTscript = function() {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines")
+  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative)
 
   if (opt$profile) {
     Rprof(NULL)

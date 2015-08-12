@@ -3,10 +3,16 @@
 #' Takes a RT file and generates R source.
 #'
 #' @export
-RTfile = function(infile, ..., shell=FALSE, filename="")
+RTfile = function(infile, ..., shell=FALSE, filename)
 {
+  if (missing(filename)) {
+    if (is.character(infile)) {
+      filename = infile
+    } else {
+      filename = "<connection>"
+    }
+  }
   if (is.character(infile)) {
-    filename = infile
     f = file(infile,"r")
   } else {
     f = infile

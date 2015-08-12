@@ -11,8 +11,8 @@ relativePath = function(a,b) {
   a = strsplit(a,"/")[[1]]
   b = strsplit(b,"/")[[1]]
   k = 1:min(length(a),length(b))
-  k = min(which(as[k] != bs[k]))
-  ret = c(rep("..",length(bs)-k),as[k:length(as)])
+  k = min(which(a[k] != b[k]))
+  ret = c(rep("..",length(b)-k),a[k:length(a)])
   ret = paste(ret,collapse="/")
   ret
 }
