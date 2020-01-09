@@ -74,7 +74,8 @@ RTscript = function() {
     make_option(c("-t","--csv"), "store", default="", help="Read csv. use: \"-t example.csv:3\" the 3 record of example.csv", type="character"),
     make_option(c("-b","--code-fallback"), "store_true", default=FALSE, help="Fallback to code on error"),
     make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)"),
-    make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling")
+    make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling"),
+    make_option(c("--relative-to"), "store", default="", help="The path (in marklines) should be relative to this (default: out)", type="character")
   )
 
   opt <- parse_args(OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options), positional_arguments=TRUE)
@@ -85,6 +86,7 @@ RTscript = function() {
   if (opt$exterminate) { opt$kill = T; opt$destroy = T; }
 
   if (opt$out == "") opt$out = NULL
+  
   if (opt$kill) {
     if (is.null(opt$out))
     {	re = "[.]R[tT][^.]*$";
@@ -111,8 +113,10 @@ RTscript = function() {
   if (opt$profile) {
     Rprof(paste0(opt$profile.file,".RT.Rprof"))
   }
-  if (!is.null(opt$out)) {
-    opt$relative = relativePath(opt$file, opt$out)
+  
+  if (opt$'relative-to' == "") opt$'relative-to' = opt$out
+  if (!is.null(opt$'relative-to')) {
+    opt$relative = relativePath(opt$file, opt$'relative-to')
   } else {
     opt$relative = opt$file
   }
