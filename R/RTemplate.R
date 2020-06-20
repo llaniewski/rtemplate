@@ -63,7 +63,6 @@ RTscript = function() {
     make_option(c("-f","--file"), "store", default="", help="Input file", type="character"),
     make_option(c("-o","--out"), "store", default="", help="Output file", type="character"),
     make_option(c("-x","--kill"), "store_true", default=FALSE, help="Put the output in a file without \".Rt\" (make a \"dead\" file)"),
-    make_option(c("-d","--destroy"), "store_true", default=FALSE, help="Delete the orginal template"),
     make_option(c("-c","--code"), "store_true", default=FALSE, help="Generate R code"),
     make_option(c("-s","--shell"), "store_true", default=FALSE,help="Discart first '#!...' line"),
     make_option(c("-i","--include"), "store", default="", help="Include a .R file", type="character"),
@@ -232,9 +231,4 @@ RTscript = function() {
     }
   }
 
-  if (opt$destroy)
-  {
-    cat("Should destroy:\n");
-    cat("rm",opt$file,"\n");
-  }
 }
