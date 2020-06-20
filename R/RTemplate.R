@@ -64,7 +64,6 @@ RTscript = function() {
     make_option(c("-o","--out"), "store", default="", help="Output file", type="character"),
     make_option(c("-x","--kill"), "store_true", default=FALSE, help="Put the output in a file without \".Rt\" (make a \"dead\" file)"),
     make_option(c("-d","--destroy"), "store_true", default=FALSE, help="Delete the orginal template"),
-    make_option(c("-e","--exterminate"), "store_true", default=FALSE, help="Kill and Destroy"),
     make_option(c("-c","--code"), "store_true", default=FALSE, help="Generate R code"),
     make_option(c("-s","--shell"), "store_true", default=FALSE,help="Discart first '#!...' line"),
     make_option(c("-i","--include"), "store", default="", help="Include a .R file", type="character"),
@@ -73,6 +72,7 @@ RTscript = function() {
     make_option(c("-q","--quiet"), "store_true", default=FALSE,help="Quiet (print only errors)"),
     make_option(c("-t","--csv"), "store", default="", help="Read csv. use: \"-t example.csv:3\" the 3 record of example.csv", type="character"),
     make_option(c("-b","--code-fallback"), "store_true", default=FALSE, help="Fallback to code on error"),
+    make_option(c("-k","--keep-code"), "store_true", default=FALSE,  help="Keep the generated .R file"),
     make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)"),
     make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling"),
     make_option(c("--relative-to"), "store", default="", help="The path (in marklines) should be relative to this (default: out)", type="character")
@@ -83,10 +83,9 @@ RTscript = function() {
   opt = opt$options
 
   if (opt$file == "") stop("Input file not specified\nUsage: RT -f file\n");
-  if (opt$exterminate) { opt$kill = T; opt$destroy = T; }
 
   if (opt$out == "") opt$out = NULL
-  
+
   if (opt$kill) {
     if (is.null(opt$out))
     {	re = "[.]R[tT][^.]*$";
@@ -97,9 +96,26 @@ RTscript = function() {
       } else {
         opt$out = sub(re,"",opt$file);
       }
-      if (opt$code) opt$out = paste(opt$out,".R",sep="");
+      if (opt$code) {
+	opt$out = paste(opt$out,".R",sep="");
+	opt$codeout = opt$out;
+      }
     } else {
       cat("Warning: output file name provided while killing\n");
+    }
+  }
+
+  if (is.null(opt$out)) {
+    if (opt$'keep-code' || opt$"code-fallback") {
+      cat("Warning: output file name not provided but code requested\n");
+      opt$'keep-code' = FALSE
+      opt$"code-fallback" = FALSE
+    }
+  }	else {
+    if (opt$code) {
+      opt$codeout = opt$out;
+    } else {
+      opt$codeout = paste0(opt$out,".code.R");
     }
   }
 
@@ -113,7 +129,7 @@ RTscript = function() {
   if (opt$profile) {
     Rprof(paste0(opt$profile.file,".RT.Rprof"))
   }
-  
+
   if (opt$'relative-to' == "") opt$'relative-to' = opt$out
   if (!is.null(opt$'relative-to')) {
     opt$relative = relativePath(opt$file, opt$'relative-to')
@@ -181,19 +197,17 @@ RTscript = function() {
       writeLines(code, con=opt$out);
     }
   } else {
+    if (opt$'keep-code') {
+      writeLines(code, con=opt$codeout);
+    }
     if (opt$profile) {
       Rprof(paste0(opt$profile.file,".parse.Rprof"))
     }
     code.p = try(parse(text=code))
-    if (class(code.p) %in% "try-error") {
+    if (inherits(code.p,"try-error")) {
       if (opt$"code-fallback") {
-        if (!is.null(opt$out)) {
-          fn = paste0(opt$out,".parse-failed.R")
-          writeLines(code, con=fn)
-          stop("Failed to parse: writen code to ", fn)
-        } else {
-          stop("Failed to parse: no output file provided to dump code")
-        }
+        writeLines(code, con=opt$codeout);
+        stop("Failed to parse: writen code to ", opt$codeout)
       } else {
         stop("Failed to parse R code")
       }
@@ -203,8 +217,16 @@ RTscript = function() {
       Rprof(paste0(opt$profile.file,".run.Rprof"))
     }
     if (! is.null(opt$out)) sink(opt$out);
-    eval(code.p, globalenv())
+    eval.res = try(eval(code.p, globalenv()))
     if (! is.null(opt$out)) sink()
+    if (inherits(eval.res,"try-error")) {
+      if (opt$"code-fallback") {
+        writeLines(code, con=opt$codeout);
+        stop("Failed to execude R code: writen code to ", opt$codeout)
+      } else {
+        stop("Failed to execude R code")
+      }
+    }
     if (opt$profile) {
       Rprof(NULL)
     }
