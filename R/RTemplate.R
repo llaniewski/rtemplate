@@ -139,7 +139,6 @@ RTscript = function() {
     cat("Parsing RT:",opt$file, "->", opt$out," (rel:",opt$relative,")\n");
 
   addcode = NULL
-  e = new.env()
 
   if(opt$csv != "")
   {
@@ -215,9 +214,11 @@ RTscript = function() {
       Rprof(NULL)
       Rprof(paste0(opt$profile.file,".run.Rprof"))
     }
+    old.wd = getwd()
     if (! is.null(opt$out)) sink(opt$out);
     eval.res = try(eval(code.p, globalenv()))
     if (! is.null(opt$out)) sink()
+    setwd(old.wd)
     if (inherits(eval.res,"try-error")) {
       if (opt$"code-fallback") {
         writeLines(code, con=opt$codeout);
