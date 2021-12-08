@@ -110,8 +110,8 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
         "\"sys.stdout = mystdout = StringIO()\",",
         paste0(encodeString(lu,quote="\""),","),
         "\"sys.stdout = old_stdout\"))",
-        "cat(py_call(\"mystdout\",\"getvalue\"))",
-        "invisible(py_call(\"mystdout\",\"close\"))")
+        "cat(py_eval(\"mystdout.getvalue()\"))",
+        "invisible(py_eval(\"mystdout.close()\"))")
     } else if (substr(tag,1,1) == "%") {
       if (length(lu) > 1) stop("'%' tag allowed only for one-line expressions");
       outadd = paste("cat(sprintf(",encodeString(tag,quote="\""),",  ", lu, "  ));",sep="");

@@ -46,7 +46,7 @@ python.standards = c(
   "for (i__ in ls(parent.frame())) python.myassign(i__,get(i__));",
   "}",
   "python.run(c(",
-  "\"import StringIO\",",
+  "\"from io import StringIO\",",
   "\"import sys\",",
   "\"import json\"))"
 )
