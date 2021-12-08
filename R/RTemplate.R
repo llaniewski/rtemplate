@@ -29,8 +29,8 @@ RT.standards = c(
 
 python.standards = c(
   "require(rjson,quietly=TRUE,warn.conflicts=FALSE)",
-  "require(RJSONIO,quietly=TRUE,warn.conflicts=FALSE)",
-  "require(rPython,quietly=TRUE,warn.conflicts=FALSE)",
+  "require(reticulate,quietly=TRUE,warn.conflicts=FALSE)",
+  "python.run = function(str) py_run_string(paste(str,collapse=\"\\n\"))",
   "python.export.all = function() {",
     "python.myassign = function (var.name, value)",
   "{",
@@ -40,11 +40,16 @@ python.standards = c(
   "python.command <- c(paste(var.name, \"='\", value, \"'\", sep = \" \"), ",
   "paste(var.name, \"= json.loads(\", var.name, \")\", sep = \"\"))",
   "python.command <- paste(python.command, collapse = \"\\n\")",
-  "python.exec(python.command)",
+  "python.run(python.command)",
   "invisible(NULL)",
   "}",
   "for (i__ in ls(parent.frame())) python.myassign(i__,get(i__));",
-  "}")
+  "}",
+  "python.run(c(",
+  "\"from io import StringIO\",",
+  "\"import sys\",",
+  "\"import json\"))"
+)
 
 
 #' Main sript for usage of RTemplate as a command-line tool

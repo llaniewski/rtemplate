@@ -105,15 +105,13 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
 
       outadd = c(
         "python.export.all();",
-        "python.exec(c(",
-        "\"from cStringIO import StringIO\",",
-        "\"import sys\",",
+        "python.run(c(",
         "\"old_stdout = sys.stdout\",",
         "\"sys.stdout = mystdout = StringIO()\",",
         paste0(encodeString(lu,quote="\""),","),
         "\"sys.stdout = old_stdout\"))",
-        "cat(python.method.call(\"mystdout\",\"getvalue\"))",
-        "invisible(python.method.call(\"mystdout\",\"close\"))")
+        "cat(py_eval(\"mystdout.getvalue()\"))",
+        "invisible(py_eval(\"mystdout.close()\"))")
     } else if (substr(tag,1,1) == "%") {
       if (length(lu) > 1) stop("'%' tag allowed only for one-line expressions");
       outadd = paste("cat(sprintf(",encodeString(tag,quote="\""),",  ", lu, "  ));",sep="");
