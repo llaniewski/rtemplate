@@ -96,6 +96,8 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
 #        outadd = rep(outadd,each=2)
 #        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
       }
+    } else if (tag == "RT") {
+      outadd = RTfile(gsub(' ', '', lu));
     } else if (tag == "python") {
       if (! loaded.rpython) {
         output = c(output,python.standards)
