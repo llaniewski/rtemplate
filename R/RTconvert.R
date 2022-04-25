@@ -47,23 +47,30 @@ RT.linemark = function(i,filename="",reset=FALSE) {
 #'  "Hello",
 #'  "<?R cat('World') ?>"
 #' ))
-RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
+RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="", included=FALSE)
 {
   chunks = RTchunks(lines)
 
-  output = c(
-    "# RTemplate genereted code.",
-    "############# RT standard functions ########",
-    "",
-    RT.standards,
-    "",
-    "############# Parameters and settings ######",
-    "",
-    add,
-    "",
-    "############# Code from Rt file ############",
-    ""
-  )
+  if (!included) {
+    output = c(
+      "# RTemplate genereted code.",
+      "############# RT standard functions ########",
+      "",
+      RT.standards,
+      "",
+      "############# Parameters and settings ######",
+      "",
+      add,
+      "",
+      "############# Code from Rt file ############",
+      ""
+    )
+  } else {
+    output = c(
+      "# RTemplate included file",
+      paste("# Filename:  ", filename)
+    )    
+  }
   loaded.rpython = FALSE
   if (mark.lines) output = c(output, RT.linemark(1,filename))
   for (i in 1:nrow(chunks))
@@ -96,6 +103,8 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
 #        outadd = rep(outadd,each=2)
 #        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
       }
+    } else if (tag == "RT") {
+      outadd = RTfile(gsub(' ', '', lu), c(), mark.lines, TRUE );
     } else if (tag == "python") {
       if (! loaded.rpython) {
         output = c(output,python.standards)
@@ -129,6 +138,14 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="")
   }
   outadd = "cat(\"\\n\")"
   output = c(output,outadd)
+
+  if (included) {
+    outadd = c(
+      paste("#END included for filename:  ", filename)
+    )    
+    output = c(output,outadd)
+  }
+
   if (mark.lines) output = c(output,RT.linemark(-1,filename))
   output
 }
