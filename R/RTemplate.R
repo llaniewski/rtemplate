@@ -148,18 +148,19 @@ RTscript = function() {
   if(opt$csv != "")
   {
     #        cat("Getting params from",opt$csv,"\n");
-    csv = strsplit(opt$csv,":")
-    csv = csv[[1]];
-    ind = 1;
-    if (length(csv) == 2) {ind = as.integer(csv[2]); csv = csv[1]; }
-    if (length(csv) >  2) stop("Wrong format -t argument: file:record");
-    addcode = c(addcode,
-                paste("csvfile = \"", encodeString(csv), "\";",sep=""),
-                paste("record = ", ind, ";",sep=""),
-                "tab = read.csv(csvfile);",
-                "for (n in names(tab))",
-                "assign(n,tab[record,n]);"
-    )
+    csvs = strsplit(opt$csv,",")[[1]]
+    csvs = strsplit(csvs,":")
+    for (csv in csvs) {
+      ind = "";
+      if (length(csv) == 2) {ind = as.integer(csv[2]); csv = csv[1]; }
+      if (length(csv) >  2) stop("Wrong format -t argument: file:record");
+      addcode = c(addcode,
+                  paste0("csvfile = \"", encodeString(csv), "\";"),
+                  "tab = read.csv(csvfile);",
+                  paste0("tab = tab[", ind, ",,drop=FALSE]"),
+                  "for (n in names(tab)) assign(n,tab[,n]);"
+      )
+    }
   }
 
   if (length(args) > 0) {
