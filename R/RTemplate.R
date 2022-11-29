@@ -157,6 +157,7 @@ RTscript = function() {
       addcode = c(addcode,
                   paste0("csvfile = \"", encodeString(csv), "\";"),
                   "tab = read.csv(csvfile);",
+                  "tab[] = lapply(tab, function(x) if (all(x %in% c('True','TRUE','False','FALSE'))) as.logical(x) else x);",
                   paste0("tab = tab[", ind, ",,drop=FALSE]"),
                   "for (n in names(tab)) assign(n,tab[,n]);"
       )
