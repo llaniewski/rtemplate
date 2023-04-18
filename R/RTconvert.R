@@ -105,7 +105,7 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="", included=FAL
       }
     } else if (tag == "RT") {
       includedFile = findFileInDirs(gsub(' ', '', lu), includedirs)
-      outadd = RTfile(includedFile, c(), mark.lines, TRUE );
+      outadd = RTfile(includedFile, mark.lines=mark.lines, included=TRUE, includedirs=includedirs )
     } else if (tag == "python") {
       if (! loaded.rpython) {
         output = c(output,python.standards)
