@@ -1,5 +1,5 @@
 findFileInDirs = function(file,dirs) {
-  pot = c(file, paste(dirs,file,sep="/"))
+  pot = c(file, if (length(dirs)>0) paste(dirs,file,sep="/") else NULL)
   sel = sapply(pot,file.exists)
   sel = which(sel)
   if (length(sel) < 1)
