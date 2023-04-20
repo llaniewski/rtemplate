@@ -1,3 +1,11 @@
+findFileInDirs = function(file,dirs) {
+  pot = c(file, if (length(dirs)>0) paste(dirs,file,sep="/") else NULL)
+  sel = sapply(pot,file.exists)
+  sel = which(sel)
+  if (length(sel) < 1)
+    stop("file not found:",file," in include directories:",paste(dirs,collapse=","))
+  pot[sel[1]]
+}
 
 RT.standards = c(
   "printf = function(...) {",
@@ -11,13 +19,10 @@ RT.standards = c(
   "  ret",
   "}",
   "if (!exists(\"include.dir\")) include.dir=NULL;",
+  "findFileInDirs =",
+  deparse(findFileInDirs),
   "source = function(file,...) {",
-  "  pot = c(file, paste(include.dir,file,sep=\"/\"))",
-  "  sel = sapply(pot,file.exists)",
-  "  sel = which(sel)",
-  "  if (length(sel) < 1)",
-  "    stop(\"file not found:\",file,\" in include directories:\",paste(include.dir,collapse=\",\"))",
-  "  newfile=pot[sel[1]]",
+  "  newfile=findFileInDirs(file, include.dir)",
   "  base::source(file=newfile,...)",
   "}",
   "add.include.dir = function(dir) {",
@@ -173,9 +178,10 @@ RTscript = function() {
     )
   }
 
+  includedirs = if (opt$includedir != "") strsplit(opt$includedir,",")[[1]] else NULL
+
   if (opt$includedir != "") {
-    opt$includedir = strsplit(opt$includedir,",")[[1]]
-    addcode = c(addcode, paste("add.include.dir(\"",opt$includedir,"\")",sep=""))
+    addcode = c(addcode, paste("add.include.dir(\"",includedirs,"\")",sep=""))
   }
 
 
@@ -189,7 +195,7 @@ RTscript = function() {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative)
+  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative, includedirs=includedirs)
 
   if (opt$profile) {
     Rprof(NULL)

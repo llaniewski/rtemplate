@@ -47,7 +47,7 @@ RT.linemark = function(i,filename="",reset=FALSE) {
 #'  "Hello",
 #'  "<?R cat('World') ?>"
 #' ))
-RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="", included=FALSE)
+RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="", included=FALSE, includedirs=NULL)
 {
   chunks = RTchunks(lines)
 
@@ -104,7 +104,8 @@ RTconvert = function(lines, add=c(), mark.lines=FALSE, filename="", included=FAL
 #        outadd[seq(1,length(outadd),2)] = RT.linemark(n$start.line:n$end.line, filename)
       }
     } else if (tag == "RT") {
-      outadd = RTfile(gsub(' ', '', lu), c(), mark.lines, TRUE );
+      includedFile = findFileInDirs(gsub(' ', '', lu), includedirs)
+      outadd = RTfile(includedFile, mark.lines=mark.lines, included=TRUE, includedirs=includedirs )
     } else if (tag == "python") {
       if (! loaded.rpython) {
         output = c(output,python.standards)
