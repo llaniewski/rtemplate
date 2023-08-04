@@ -57,6 +57,48 @@ python.standards = c(
 )
 
 
+combine.repeated.opt = function(obj, args, sep = "|") {
+  opts <- obj@options
+  opts <- opts[sapply(opts, function(x) x@type == "character")]
+  for (opt in opts) {
+    n <- length(args)
+    values <- character(0)
+    to.remove <- integer(0)
+    x <- opt@short_flag
+    if (!is.na(x)) {
+      pattern <- paste0("^",x,"$")
+      i <- grep(pattern, args)
+      i <- i[i+1 <= n]
+      values <- c(values, args[i+1])
+      to.remove <- c(to.remove, c(i,i+1))
+    }
+    x <- opt@long_flag
+    pattern <- paste0("^",x,"$")
+    i <- grep(pattern, args)
+    i <- i[i+1 <= n]
+    values <- c(values, args[i+1])
+    to.remove <- c(to.remove, c(i,i+1))
+    pattern <- paste0("^",x,"=")
+    i <- grep(pattern, args)
+    values <- c(values,sub(pattern,"",args[i]))
+    to.remove <- c(to.remove, c(i))
+    if (length(values) > 1) {
+      i = min(to.remove)-1
+      args = args[-to.remove]
+      n = length(args)
+      newargs = c(opt@long_flag, paste0(values, collapse=sep))
+      args = c(
+        args[seq_len(i)],
+        newargs,
+        args[seq_len(n-i)+i]
+      )
+    }
+  }
+  args
+}
+
+
+
 #' Main sript for usage of RTemplate as a command-line tool
 #'
 #' You just call it, and it takes arguments from command-line and does stuff.
@@ -67,7 +109,7 @@ python.standards = c(
 #'
 #' @export
 #' @import optparse
-RTscript = function() {
+RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
 
   options <- list(
     make_option(c("-f","--file"), "store", default="", help="Input file", type="character"),
@@ -86,8 +128,10 @@ RTscript = function() {
     make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling"),
     make_option(c("--relative-to"), "store", default="", help="The path (in marklines) should be relative to this (default: out)", type="character")
   )
+  parser = OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options)
 
-  opt <- parse_args(OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options), positional_arguments=TRUE)
+  args = combine.repeated.opt(parser,args)
+  opt <- parse_args(parser, args=args, positional_arguments=TRUE)
   args = opt$args
   opt = opt$options
 
@@ -153,7 +197,7 @@ RTscript = function() {
   if(opt$csv != "")
   {
     #        cat("Getting params from",opt$csv,"\n");
-    csvs = strsplit(opt$csv,",")[[1]]
+    csvs = strsplit(opt$csv,"[,|]")[[1]]
     csvs = strsplit(csvs,":")
     for (csv in csvs) {
       ind = "";
@@ -178,10 +222,9 @@ RTscript = function() {
     )
   }
 
-  includedirs = if (opt$includedir != "") strsplit(opt$includedir,",")[[1]] else NULL
-
   if (opt$includedir != "") {
-    addcode = c(addcode, paste("add.include.dir(\"",includedirs,"\")",sep=""))
+    opt$includedir = strsplit(opt$includedir,"[,|]")[[1]]
+    addcode = c(addcode, paste("add.include.dir(\"",opt$includedir,"\")",sep=""))
   }
 
 
@@ -191,7 +234,7 @@ RTscript = function() {
 
 
   if (opt$include != "") {
-    opt$include = strsplit(opt$include,",")[[1]]
+    opt$include = strsplit(opt$include,"[,|]")[[1]]
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
