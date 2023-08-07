@@ -222,8 +222,8 @@ RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
     )
   }
 
-  if (opt$includedir != "") {
-    opt$includedir = strsplit(opt$includedir,"[,|]")[[1]]
+  opt$includedir = strsplit(opt$includedir,"[,|]")[[1]]
+  if (length(opt$includedir) > 0) {
     addcode = c(addcode, paste("add.include.dir(\"",opt$includedir,"\")",sep=""))
   }
 
@@ -233,12 +233,12 @@ RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
   }
 
 
-  if (opt$include != "") {
-    opt$include = strsplit(opt$include,"[,|]")[[1]]
+  opt$include = strsplit(opt$include,"[,|]")[[1]]
+  if (length(opt$include) > 0) {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative, includedirs=includedirs)
+  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative, includedirs=opt$includedir)
 
   if (opt$profile) {
     Rprof(NULL)
