@@ -126,7 +126,10 @@ RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
     make_option(c("-k","--keep-code"), "store_true", default=FALSE,  help="Keep the generated .R file"),
     make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)"),
     make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling"),
-    make_option(c("--tokenize"), "store_true",  default="", help="Substitute RT chunks with tokens", type="character"),
+    make_option(c("--token"), "store",  default="__RT_*_RT__", help="Token format", type="character"),
+    make_option(c("--token-file"), "store",  default="", help="Token file", type="character"),
+    make_option(c("--tokenize"), "store_true", default=FALSE, help="Convert RT chunks to tokens"),
+    make_option(c("--detokenize"), "store_true", default=FALSE, help="Convert tokens back to RT chunks"),
     make_option(c("--relative-to"), "store", default="", help="The path (in marklines) should be relative to this (default: out)", type="character")
   )
   parser = OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options)
@@ -239,8 +242,9 @@ RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  if (opt$tokenize != "") {
-    lines = RTtokenize(opt$file, token=opt$tokenize)
+  if (opt$tokenize | opt$detokenize) {
+    if (opt$tokenize & opt$detokenize) stop("cannot tokenize and detokenize at the same time")
+    lines = RTtokenize(opt$file, tokenize=opt$tokenize, token=opt$token, tokenfile=opt$'token-file')
     if (is.null(opt$out)) {
       writeLines(lines, sep="");
     } else {
