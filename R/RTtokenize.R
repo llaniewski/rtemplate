@@ -55,7 +55,7 @@ RTtokenize = function(infile, token, tokenize, tokenfile)
     if (tokenfile != "") saveRDS(to_save, tokenfile)
     c(output,"\n")
   } else {
-    if (!file.exists(tokenfile)) stop("Token-file",tokenfile,"doesn't exist")
+    if (!file.exists(tokenfile)) stop("Token-file ",tokenfile," doesn't exist")
     token_list = readRDS(tokenfile)
     x = gregexpr("__RT_([[:digit:]]*)_RT__", lines, perl=TRUE)
     sel = which(sapply(x,function(x) x[1] != -1))
