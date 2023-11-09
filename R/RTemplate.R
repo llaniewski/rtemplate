@@ -126,6 +126,7 @@ RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
     make_option(c("-k","--keep-code"), "store_true", default=FALSE,  help="Keep the generated .R file"),
     make_option(c("-l","--mark-lines"), "store_true", default=FALSE, help="Map lines of input to output (usefull for error marking in C)"),
     make_option(c("-p","--profile"), "store_true", default=FALSE, help="Run profiling"),
+    make_option(c("--tokenize"), "store_true",  default="", help="Substitute RT chunks with tokens", type="character"),
     make_option(c("--relative-to"), "store", default="", help="The path (in marklines) should be relative to this (default: out)", type="character")
   )
   parser = OptionParser(usage="Usage: RT [-x] -f inputfile [-o outputfile]", options)
@@ -238,54 +239,63 @@ RTscript = function(args = commandArgs(trailingOnly = TRUE)) {
     addcode = c(addcode, paste("source(\"", opt$include, "\")",sep=""))
   }
 
-  code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative, includedirs=opt$includedir)
-
-  if (opt$profile) {
-    Rprof(NULL)
-  }
-
-  if (opt$code) {
+  if (opt$tokenize != "") {
+    lines = RTtokenize(opt$file, token=opt$tokenize)
     if (is.null(opt$out)) {
-      writeLines(code);
+      writeLines(lines, sep="");
     } else {
-      writeLines(code, con=opt$out);
+      writeLines(lines, con=opt$out, sep="");
     }
   } else {
-    if (opt$'keep-code') {
-      writeLines(code, con=opt$codeout);
-    }
-    if (opt$profile) {
-      Rprof(paste0(opt$profile.file,".parse.Rprof"))
-    }
-    code.p = try(parse(text=code))
-    if (inherits(code.p,"try-error")) {
-      if (opt$"code-fallback") {
-        writeLines(code, con=opt$codeout);
-        stop("Failed to parse: writen code to ", opt$codeout)
-      } else {
-        stop("Failed to parse R code")
-      }
-    }
+
+    code = RTfile(opt$file, add=addcode, shell=opt$shell, mark.lines=opt$"mark-lines",filename=opt$relative, includedirs=opt$includedir)
+
     if (opt$profile) {
       Rprof(NULL)
-      Rprof(paste0(opt$profile.file,".run.Rprof"))
     }
-    old.wd = getwd()
-    if (! is.null(opt$out)) sink(opt$out);
-    eval.res = try(eval(code.p, globalenv()))
-    if (! is.null(opt$out)) sink()
-    setwd(old.wd)
-    if (inherits(eval.res,"try-error")) {
-      if (opt$"code-fallback") {
-        writeLines(code, con=opt$codeout);
-        stop("Failed to execude R code: writen code to ", opt$codeout)
+
+    if (opt$code) {
+      if (is.null(opt$out)) {
+        writeLines(code);
       } else {
-        stop("Failed to execude R code")
+        writeLines(code, con=opt$out);
       }
-    }
-    if (opt$profile) {
-      Rprof(NULL)
+    } else {
+      if (opt$'keep-code') {
+        writeLines(code, con=opt$codeout);
+      }
+      if (opt$profile) {
+        Rprof(paste0(opt$profile.file,".parse.Rprof"))
+      }
+      code.p = try(parse(text=code))
+      if (inherits(code.p,"try-error")) {
+        if (opt$"code-fallback") {
+          writeLines(code, con=opt$codeout);
+          stop("Failed to parse: writen code to ", opt$codeout)
+        } else {
+          stop("Failed to parse R code")
+        }
+      }
+      if (opt$profile) {
+        Rprof(NULL)
+        Rprof(paste0(opt$profile.file,".run.Rprof"))
+      }
+      old.wd = getwd()
+      if (! is.null(opt$out)) sink(opt$out);
+      eval.res = try(eval(code.p, globalenv()))
+      if (! is.null(opt$out)) sink()
+      setwd(old.wd)
+      if (inherits(eval.res,"try-error")) {
+        if (opt$"code-fallback") {
+          writeLines(code, con=opt$codeout);
+          stop("Failed to execude R code: writen code to ", opt$codeout)
+        } else {
+          stop("Failed to execude R code")
+        }
+      }
+      if (opt$profile) {
+        Rprof(NULL)
+      }
     }
   }
-
 }
