@@ -7,3 +7,4 @@ Depends: R (>= 3.0.2), optparse (>= 1.2.0)
 License: GPL
 LazyData: true
 Suggests: testthat, rjson, rPython
+RoxygenNote: 7.2.2
