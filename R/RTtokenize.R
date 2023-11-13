@@ -47,7 +47,7 @@ RTtokenize = function(infile="stdin", token="__RT_*_RT__", inverse=FALSE, tokenf
       tok = substring(s,a,a+b-1)
       a = attr(x[[i]],"capture.start"); b = attr(x[[i]],"capture.length")
       idx = as.integer(substring(s,a,a+b-1))
-      for (j in seq_along(tok)) s = gsub(tok[j], token_list[idx[j]], s)
+      for (j in seq_along(tok)) s = gsub(tok[j], token_list[idx[j]], s, fixed=TRUE)
       lines[i] = s
     }
     output = paste0(lines,"\n")
