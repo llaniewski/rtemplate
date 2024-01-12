@@ -4,44 +4,51 @@
 #'
 #' @export
 RTchunks = function(lines) {
-  x = gregexpr("<[?][^[:blank:]]*", lines)
-  y = gregexpr("[?]>", lines)
-
-  transf = function(x) {
-    r = data.frame(line=c(),start=c(),end=c())
-    for (i in seq_along(x))
-    {  p = x[[i]]
-       if (p[1] != -1)
-       {
-         tags = substring(lines[i],p+2,p+attr(p,"match.length")-1)
-         r = rbind(r,
-                   data.frame(line=i,start=p, end=p+attr(p,"match.length"),tag=tags)
-         )
-       }
-    }
-    r
+  transf = function(x,open) {
+    ret = lapply(seq_along(x), function(i) {
+      p = x[[i]]
+      if (p[1] == -1) return(NULL)
+      ret = data.frame(line=i, start=p, end=p+attr(p,"match.length") - 1,open=open)
+      ret$match = substring(lines[ret$line],ret$start,ret$end)
+      ret$tag = trimws(substring(lines[ret$line],ret$start+2,ret$end))
+      ret
+    })
+    do.call(rbind, ret)
   }
 
-  x = transf(x)
-  if (nrow(x) > 0) x$open=T
-  y = transf(y)
-  if (nrow(y) > 0) y$open=F
+  x = gregexpr("<[?][^[:blank:]]*[[:blank:]]*", lines)
+  y = gregexpr("[?]>", lines)
+  x = transf(x,open=TRUE)
+  y = transf(y,open=FALSE)
   tokens = rbind(x,y)
-  if (nrow(tokens) > 0) {
+  if (is.null(tokens)) {
+    chunks = data.frame(
+      start.line = 1,
+      start.char = 1,
+      whole.start.char = 1,
+      end.line = length(lines),
+      end.char = nchar(lines[length(lines)]),
+      whole.end.char = nchar(lines[length(lines)]),
+      tag=""
+    )
+  } else {
     i = order(tokens$line,tokens$start)
     tokens = tokens[i,]
 
     check = cumsum(tokens$open*2-1)
     if (any(check > 1 | check < 0) | tail(check,1) != 0 ) stop ("Non matching <? and ?> found\n")
-
+    tokens$edge = ifelse(tokens$open, tokens$start, tokens$end+1)
     chunks = data.frame(
-      start.line = c(1,tokens$line), start.char = c(1,tokens$end),
-      end.line = c(tokens$line,length(lines)), end.char = c(tokens$start-1,nchar(lines[length(lines)])), tag=c("",as.character(tokens$tag)) )
-  } else {chunks = data.frame(
-    start.line = 1, start.char = 1,
-    end.line = length(lines), end.char = nchar(lines[length(lines)]), tag="")
+      start.line = c(1,tokens$line),
+      start.char = c(1,tokens$end+1),
+      whole.start.char = c(1,tokens$edge),
+      end.line = c(tokens$line,length(lines)),
+      end.char = c(tokens$start-1,nchar(lines[length(lines)])),
+      whole.end.char = c(tokens$edge-1,nchar(lines[length(lines)])),
+      tag=c("",as.character(tokens$tag)),
+      plain = c(TRUE, ! tokens$open)
+    )
   }
-  sel = (chunks$start.line == chunks$end.line) & (chunks$start.char - chunks$end.char == 1)
+  sel = (chunks$start.line == chunks$end.line) & (chunks$end.char - chunks$start.char < 0)
   chunks[!sel,]
-
 }
