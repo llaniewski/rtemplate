@@ -2,6 +2,8 @@ readlink = function(a) {
   f = pipe(paste("readlink -f",a))
   ret = readLines(f)
   close(f)
+  # for non existing paths on mac
+  if (length(ret) == 0 || ret == "") ret = a
   ret
 }
 
